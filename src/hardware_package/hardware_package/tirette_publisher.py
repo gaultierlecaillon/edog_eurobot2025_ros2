@@ -25,7 +25,7 @@ class TirettePublisher(Node):
         self.publisher_ = self.create_publisher(Bool, "tirette_topic", 10)
 
         # end
-        self.get_logger().info("Node tirette_publisher started")
+        self.get_logger().info("🚀 Node tirette_publisher has been started.")
 
     #Todo, if msg.data == True the shutdown the node
     def publish_state(self):

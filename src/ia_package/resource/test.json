@@ -7,6 +7,14 @@
   "timer": "1000",
   "strategy": [
     {
+      "name": "Starting Blocks",
+      "actions": [
+        { "home_elevator": "" },
+        { "waiting_tirette": true },
+        { "waiting_tirette": false }
+      ]
+    },
+    {
       "name": "grab 1st plants",
       "actions": [
         { "grab": "" }

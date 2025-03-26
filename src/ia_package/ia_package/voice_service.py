@@ -21,7 +21,7 @@ class VoiceService(Node):
             10)
         
 
-        self.get_logger().info('VoiceService node has started')
+        self.get_logger().info('🚀 VoiceService node has been started')
 
 
     def play_mp3(self, file_path):

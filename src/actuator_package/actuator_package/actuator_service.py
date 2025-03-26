@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 from std_msgs.msg import Bool
 from robot_interfaces.srv import CmdActuatorService
 from robot_interfaces.srv import CmdForwardService
+from robot_interfaces.srv import BoolBool
 from robot_interfaces.msg import MotionCompleteResponse
 from robot_interfaces.srv import CmdPositionService
 from example_interfaces.msg import String
@@ -23,10 +24,11 @@ class ActuatorService(Node):
     direction = 22  # Direction (DIR) GPIO Pin
     step = 23  # Step GPIO Pin
     EN_pin = 24  # enable pin (LOW to enable)
+    endstop_pin = 17  # GPIO BCM for Endstop Switch V1.2
 
     # Node State
     actuator_config = None
-    elevator_position = 0    
+    elevator_position = -1    
 
     def __init__(self):
         super().__init__("actuator_service")
@@ -50,14 +52,21 @@ class ActuatorService(Node):
         if not hasattr(self, 'voice_publisher'):
             self.voice_publisher = self.create_publisher(String, "voice_topic", 10)
         
-        ''' Services '''        
+        ''' Services '''
+        self.create_service(
+            CmdActuatorService,
+            "is_homed_service",
+            self.is_homed_callback
+        )
+        
         self.create_service(
             CmdActuatorService,
             "cmd_grab_service",
-            self.grab_callback)
+            self.grab_callback
+        )
 
         self.publish_pid()
-        self.get_logger().info("Pince Service has been started.")
+        self.get_logger().info("🚀 Actuator Service has been started.")
 
     def publish_pid(self):
         msg = Int32()
@@ -68,12 +77,12 @@ class ActuatorService(Node):
     
     def grab_callback(self, request, response):
         self.get_logger().info(f"grab_callback Called : param={request.param}")
+        if self.elevator_position == -1:
+            self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
+            response.success = False
+            return response
 
-        try:
-            step = self.actuator_config['elevator']['down']
-            self.move_elevator(step)
-            time.sleep(3)
-            
+        try:            
             step = self.actuator_config['elevator']['infinite']
             self.move_elevator(step)
             time.sleep(4)
@@ -126,11 +135,61 @@ class ActuatorService(Node):
         return config
     
     def initStepper(self):
+        self.get_logger().info("Initialization Stepper (blocking)")
+
         self.stepper_motor = RpiMotorLib.A4988Nema(self.direction, self.step, (21, 21, 21), "DRV8825")
         GPIO.setmode(GPIO.BCM)        
-        GPIO.setup(self.EN_pin, GPIO.OUT)  # set enable pin as output
+        GPIO.setup(self.EN_pin, GPIO.OUT)
         GPIO.output(self.EN_pin, GPIO.HIGH)
-        time.sleep(0.5)
+        time.sleep(0.1)
+        
+    def is_homed_callback(self, request, response):
+        self.get_logger().info("Initialization Elevator: searching for endstop...")
+
+        GPIO.setup(self.endstop_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.output(self.EN_pin, GPIO.LOW)
+
+        while GPIO.input(self.endstop_pin):
+            self.stepper_motor.motor_go(
+                False,
+                "Full",
+                2,
+                0.005,
+                False,
+                0.01
+            )
+
+        GPIO.output(self.EN_pin, GPIO.HIGH)
+        self.elevator_position = 0
+        self.get_logger().info("✅ Elevator homed.")
+
+        response.success = True
+        return response
+
+        """
+        Moves the stepper until the endstop is hit to home the elevator.        
+        """
+        # Configure the endstop input pin
+        GPIO.setup(self.endstop_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        # Activate the stepper until the endstop is pressed
+        self.get_logger().info("Initialization Elevator: searching for endstop...")
+
+        GPIO.output(self.EN_pin, GPIO.LOW)
+        while GPIO.input(self.endstop_pin):  # while the switch is NOT pressed
+            self.stepper_motor.motor_go(
+                False,      # direction toward the endstop
+                "Full",
+                2,          # move one step at a time
+                0.005,      # delay between steps
+                False,
+                0.01
+            )
+        GPIO.output(self.EN_pin, GPIO.HIGH)
+
+        self.get_logger().info("Endstop detected. Initialization complete.")
+        self.elevator_position = 0
+        self.get_logger().info("✅ Elevator homed.")
 
     def initServo(self):
         self.kit.servo[4].angle = self.actuator_config['solarpanel']['motor4']['close']

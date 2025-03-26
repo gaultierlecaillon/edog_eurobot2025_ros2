@@ -138,23 +138,6 @@ class IANode(Node):
         else:
             self.get_logger().info(f"\033[95m[⏳ WAITING ⏳] Pull the tirette and the match will start for {self.shutdown_after_seconds}s 🏁\033[0m")
 
-    def homing(self, param):
-        service_name = "cmd_homing_service"
-
-        self.get_logger().info(f"[Exec Action] 🏠 Homing with param: {param}")
-        client = self.create_client(CmdActuatorService, service_name)
-        while not client.wait_for_service(0.25):
-            self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
-
-        request = CmdActuatorService.Request()
-        request.param = param
-        future = client.call_async(request)
-
-        future.add_done_callback(
-            partial(self.callback_current_action))
-
-        self.get_logger().info(f"[Publish] {request} to {service_name}")
-
     def callback_waiting_tirette(self, msg, param):
         if msg.data == param:
             if not param: # The tirette have been pulled, the Match start
@@ -294,6 +277,23 @@ class IANode(Node):
             partial(self.callback_current_action))
 
         self.get_logger().info(f"[Publish] {request} to {service_name}")
+        
+    def home_elevator(self, param):
+        service_name = "is_homed_service"
+        self.get_logger().info(f"Performing 'Homing Elevator' action with param: {param}")
+        client = self.create_client(CmdActuatorService, service_name)
+        while not client.wait_for_service(1):
+            self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
+
+        request = CmdActuatorService.Request()
+        request.param = param
+        future = client.call_async(request)
+
+        future.add_done_callback(
+            partial(self.callback_current_action))
+
+        self.get_logger().info(f"[Publish] {request} to {service_name}")
+        
 
     def elevator(self, param):
         service_name = "cmd_elevator_service"

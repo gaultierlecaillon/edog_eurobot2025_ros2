@@ -42,7 +42,7 @@ class LidarFilter(Node):
             self.robot_position_callback,
             10)
 
-        self.get_logger().info('LidarFilter node has started')
+        self.get_logger().info('🚀 LidarFilter node has been started')
 
     def robot_position_callback(self, msg):
         #self.get_logger().info(f"x: {msg.x}, y: {msg.y}, r: {msg.r}")
