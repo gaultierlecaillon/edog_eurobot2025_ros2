@@ -5,10 +5,10 @@
     <img src="https://i.postimg.cc/m2LKh4Fk/banner.png" alt="Logo">
   </a>
 
-  <h3 align="center">Edog Eurobot 2024 ROS2 packages </h3>
+  <h3 align="center">Edog Eurobot 2025 ROS2 packages </h3>
 
   <p align="center">
-    A collection of ROS2 packages to control the robot Edog 2024
+    A collection of ROS2 packages to control the robot Edog 2025
     </p>
 </div>
 
