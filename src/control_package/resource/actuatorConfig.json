@@ -35,6 +35,7 @@
       "depose": 50,
       "plant": 100,
       "jardiniere": 365,
-      "up": 450
+      "up": 450,
+      "infinite": 10000
   }
 }
