@@ -1,0 +1,63 @@
+{
+  "type": "Strategy",
+  "name": "strat_bleu.json",
+  "description": "Strat Bleu",
+  "color": "blue",
+  "startingPos": "2885,1775,180",
+  "timer": "100",
+  "strategy": [
+    {
+      "name": "Starting Blocks",
+      "actions": [
+        { "calibrate": "True" },
+        { "waiting_tirette": true },
+        { "forward": "100" }
+        { "waiting_tirette": false }
+      ]
+    },
+    {
+      "name": "Solar panels",
+      "actions": [
+        { "arm": "open" },
+        { "pince": "right,extend" },
+        { "forward": "600" }
+      ]
+    },
+    {
+      "name": "Solar panels",
+      "actions": [
+        { "forward": "350" },
+        { "forward": "350" },
+        { "arm": "close" },
+        { "forward": "-200" },
+        { "pince": "right,close" }
+      ]
+    },
+    {
+      "name": "Grab 1st plants",
+      "actions": [
+        {"goto": "1500,1775,-90"},
+        { "forward": "-100" },
+        { "grab": "" },
+        { "forward": "200" },
+        { "forward": "-200" }
+      ]
+    },
+    {
+      "name": "Grab 2nd plants",
+      "actions": [
+        {"goto": "1550,1300,0"},
+        { "grab": "" },
+        { "forward": "-200" }
+      ]
+    },
+    {
+      "name": "Depose",
+      "actions": [
+        { "goto": "2600,1700,0" },
+        { "depose": "" },
+        { "depose": "" }
+      ]
+    }
+  ]
+}

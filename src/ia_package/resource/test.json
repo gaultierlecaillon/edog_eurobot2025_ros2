@@ -1,0 +1,33 @@
+{
+  "type": "Strategy",
+  "name": "strat_bleu.json",
+  "description": "Strat Bleu",
+  "color": "blue",
+  "startingPos": "0,0,0",
+  "timer": "1000",
+  "strategy": [
+    {
+      "name": "Starting Blocks",
+      "actions": [
+        { "calibrate": "True" }
+      ]
+    },
+    {
+      "name": "Demo",
+      "actions": [
+        { "goto": "1200,0,0" },
+        { "rotate": "540" },
+        { "goto": "0,0,0" },
+        { "goto": "1200,0,0" },
+        { "rotate": "540" },
+        { "goto": "0,0,0" },
+        { "goto": "1200,0,0" },
+        { "rotate": "540" },
+        { "goto": "0,0,0" },
+        { "goto": "1200,0,0" },
+        { "rotate": "540" },
+        { "goto": "0,0,0" }
+      ]
+    }
+  ]
+}

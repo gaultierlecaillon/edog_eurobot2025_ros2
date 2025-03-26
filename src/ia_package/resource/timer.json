@@ -1,0 +1,30 @@
+{
+  "type": "timer",
+  "name": "timer.json",
+  "description": "",
+  "color": "",
+  "startingPos": "0,0,0",
+  "timer": 100,
+  "strategy": [
+    {
+      "name": "Starting Blocks",
+      "actions": [
+        { "calibrate": "True" },
+        { "waiting_tirette": true },
+        { "waiting_tirette": false }
+      ]
+    },
+    {
+      "name": "Opening",
+      "actions": [
+        { "solarpanel": "slow" },
+        { "solarpanel": "slow" },
+        { "solarpanel": "slow" },
+        { "solarpanel": "slow" },
+        { "solarpanel": "slow" },
+        { "solarpanel": "slow" },
+        { "solarpanel": "slow" }
+      ]
+    }
+  ]
+}

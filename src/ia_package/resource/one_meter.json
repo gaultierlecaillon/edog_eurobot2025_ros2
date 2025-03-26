@@ -1,0 +1,24 @@
+{
+  "type": "Strategy",
+  "name": "MatchBlue",
+  "description": "Main strategy for blue color",
+  "color": "blue",
+  "startingPos": "250,1750,0",
+  "strategy": [
+    {
+      "name": "Starting Blocks",
+      "actions": [
+        { "calibrate": "True" }
+      ]
+    },
+    {
+      "name": "Opening",
+      "actions": [
+        { "forward": "500" },
+        { "rotate": "-90" },
+        { "forward": "500" },
+        { "goto": "250,1750,0" }
+      ]
+    }
+  ]
+}

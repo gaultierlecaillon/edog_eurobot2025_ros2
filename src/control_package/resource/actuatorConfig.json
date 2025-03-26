@@ -1,0 +1,40 @@
+{
+  "pince": {
+    "motor0": {
+      "close": 10,
+      "open": 90,
+      "extend": 120
+    },
+    "motor1": {
+      "close": 175,
+      "open": 93,
+      "extend": 68
+    }
+  },
+  "graber": {
+    "motor2": {
+      "close": 45,
+      "open": 138,
+      "plant": 63
+    },
+    "motor3": {
+      "close": 95,
+      "semi-close": 85,
+      "open": 30,
+      "plant": 45
+    }
+  },
+  "solarpanel": {
+    "motor4": {
+      "open": 65,
+      "close": 180 
+    }   
+  },
+  "elevator": {      
+      "down": 0,
+      "depose": 50,
+      "plant": 100,
+      "jardiniere": 365,
+      "up": 450
+  }
+}
