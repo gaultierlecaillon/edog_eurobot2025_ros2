@@ -151,12 +151,12 @@ class ActuatorService(Node):
 
         while GPIO.input(self.endstop_pin):
             self.stepper_motor.motor_go(
-                False,
-                "Full",
-                2,
-                0.005,
-                False,
-                0.01
+                False, # True=Clockwise, False=Counter-Clockwise
+                self.actuator_config['stepper']['step_type'], # Step type (Full,Half,1/4,1/8,1/16,1/32)
+                self.actuator_config['stepper']['step'], # number of steps
+                self.actuator_config['stepper']['step_delay'], # step delay [sec]
+                False, # True = print verbose output
+                self.actuator_config['stepper']['initial_delay'] # initial delay [sec]
             )
 
         GPIO.output(self.EN_pin, GPIO.HIGH)

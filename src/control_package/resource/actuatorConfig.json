@@ -37,5 +37,12 @@
       "jardiniere": 365,
       "up": 450,
       "infinite": 10000
+  },
+  "stepper": {
+    "step_type": "Half",
+    "step": 20,
+    "step_delay": 0.0005,
+    "initial_delay": 0.00002,
+    "loop_delay": 0
   }
 }
