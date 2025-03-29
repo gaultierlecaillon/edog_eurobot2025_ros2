@@ -37,8 +37,8 @@ class ActuatorService(Node):
 
         self.actuator_config = self.loadActuatorConfig()
         self.kit = ServoKit(channels=16)
-        self.initStepper()
         self.initServo()
+        self.initStepper()        
 
         ''' Subscribers '''       
         self.create_subscription(
@@ -192,14 +192,10 @@ class ActuatorService(Node):
         self.get_logger().info("✅ Elevator homed.")
 
     def initServo(self):
-        self.kit.servo[4].angle = self.actuator_config['solarpanel']['motor4']['close']
-        self.kit.servo[2].angle = self.actuator_config['graber']['motor2']['close']
-        time.sleep(0.25)
-        self.kit.servo[3].angle = self.actuator_config['graber']['motor3']['close']        
-        time.sleep(0.5)
-        self.kit.servo[0].angle = self.actuator_config['pince']['motor0']['close']
-        self.kit.servo[1].angle = self.actuator_config['pince']['motor1']['close']
-        time.sleep(0.25)
+        #self.kit.servo[0].angle = self.actuator_config['grabber']['motor0']['close']
+        self.kit.servo[1].angle = self.actuator_config['grabber']['motor1']['close']
+        self.kit.servo[2].angle = self.actuator_config['grabber']['motor2']['close']
+        #self.kit.servo[3].angle = self.actuator_config['grabber']['motor3']['close']
     
     def shutdown_callback(self, msg):       
         if msg.data:                  
