@@ -1,0 +1,25 @@
+{
+  "type": "Strategy",
+  "name": "strat_bleu.json",
+  "description": "Strat Bleu",
+  "color": "blue",
+  "startingPos": "0,0,0",
+  "timer": "1000",
+  "strategy": [
+    {
+      "name": "Starting Blocks",
+      "actions": [
+        { "home_elevator": "" },
+        { "calibrate": "True" },
+        { "waiting_tirette": true },
+        { "waiting_tirette": false }
+      ]
+    },
+    {
+      "name": "Build Scene",
+      "actions": [
+        { "build": "" }
+      ]
+    }
+  ]
+}
