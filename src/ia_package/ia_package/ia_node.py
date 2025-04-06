@@ -120,7 +120,7 @@ class IANode(Node):
         self.get_logger().info(f"\033[38;5;208m[motion_complete_callback] Received in IAService: {msg} for {action_name}\033[0m")
 
         if msg.success and msg.service_requester == str(self.__class__.__name__):
-            if action_name == 'grab' or action_name == 'depose':
+            if action_name == 'build':
                 self.get_logger().info(f"\033[38;5;208mIgnore this motion complete {action_name}\033[0m")
                 pass
             else:
@@ -198,22 +198,6 @@ class IANode(Node):
 
         self.get_logger().info(f"[Publish] {request} to {service_name}")
     
-    def depose(self, param):
-        service_name = "cmd_depose_top_service"
-        self.get_logger().info(f"Performing 'Depose' action with param: {param}")
-        client = self.create_client(CmdActuatorService, service_name)
-        while not client.wait_for_service(1):
-            self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
-
-        request = CmdActuatorService.Request()
-        request.param = param
-        future = client.call_async(request)
-
-        future.add_done_callback(
-            partial(self.callback_current_action))
-
-        self.get_logger().info(f"[Publish] {request} to {service_name}")
-    
     def arm(self, param):
         service_name = "cmd_arm_service"
         self.get_logger().info(f"Performing 'Arm' action with param: {param}")
@@ -262,9 +246,9 @@ class IANode(Node):
 
         self.get_logger().info(f"[Publish] {request} to {service_name}")
              
-    def grab(self, param):
-        service_name = "cmd_grab_service"
-        self.get_logger().info(f"Performing 'Graber' action with param: {param}")
+    def build(self, param):
+        service_name = "cmd_build_service"
+        self.get_logger().info(f"Performing 'Build' action with param: {param}")
         client = self.create_client(CmdActuatorService, service_name)
         while not client.wait_for_service(1):
             self.get_logger().warn(f"Waiting for Server {service_name} to be available...")

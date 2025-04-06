@@ -10,8 +10,11 @@
     }
   },
   "elevator": {      
-      "down": 0,
-      "up": 50
+      "down": 10,
+      "suction": 3400,
+      "drop_suction": 3500,
+      "approach_etage_1": 3700,
+      "depose_etage_1": 3200
   },
   "stepper": {
     "step_type": "Half",

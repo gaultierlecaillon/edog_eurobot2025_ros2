@@ -33,5 +33,5 @@ lidar
 
 Launch a strategy
 ```shell
-launch strat:=test_strat
+launch strat:=test
 ```
