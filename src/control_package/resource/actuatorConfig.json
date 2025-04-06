@@ -10,8 +10,8 @@
     }
   },
   "elevator": {      
-      "down": 0,
-      "suction": 3300,
+      "down": 10,
+      "suction": 3400,
       "drop_suction": 3500,
       "approach_etage_1": 3700,
       "depose_etage_1": 3200

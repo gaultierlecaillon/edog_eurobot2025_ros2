@@ -97,12 +97,12 @@ class ActuatorService(Node):
             
             # Position the elevator to suction the first plank
             step = self.actuator_config['elevator']['suction']
-            self.move_elevator(step)            
-            self.pump(True);
+            self.move_elevator(step*0.1)
             
             # Move backward
             self.cmd_forward(-200, 'slow', False)
-            time.sleep(2)
+            self.move_elevator(step)            
+            self.pump(True);
             
             # Rotate 180
             self.cmd_rotate(180);
@@ -119,12 +119,13 @@ class ActuatorService(Node):
             # Rotate 180
             self.cmd_rotate(-180);            
             step = self.actuator_config['elevator']['drop_suction']
-            self.move_elevator(step)            
-            self.pump(False);
+            self.move_elevator(step * 0.7)
             
             # Move forward
             self.cmd_forward(100, 'slow', False)
-            time.sleep(1.5)
+            self.move_elevator(step)            
+            self.pump(False);
+            time.sleep(1)
             
             # Move elevator down
             step = self.actuator_config['elevator']['down']
@@ -142,9 +143,10 @@ class ActuatorService(Node):
             # Rotate 180            
             self.cmd_rotate(-180);
             step = self.actuator_config['elevator']['approach_etage_1']
-            self.move_elevator(step)
+            self.move_elevator(step*0.8)
             self.cmd_forward(200, 'slow', False)
-            time.sleep(2)
+            self.move_elevator(step)
+            time.sleep(1)
             
             step = self.actuator_config['elevator']['depose_etage_1']
             self.move_elevator(step)
@@ -171,6 +173,14 @@ class ActuatorService(Node):
             GPIO.output(self.PUMP_GPIO, GPIO.LOW)
         
     def move_elevator(self, step):
+        step = int(step)  # Convert to int if it's a float
+        if self.elevator_position == -1:
+            self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
+            raise ValueError("Elevator not homed, cannot move elevator.")
+        if step < 0 or step > 3700:
+            self.get_logger().error(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
+            raise ValueError(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
+        
         GPIO.output(self.EN_pin, GPIO.LOW)
         delta = step - self.elevator_position
         self.get_logger().info(f"Move elevator to {abs(delta)}")
