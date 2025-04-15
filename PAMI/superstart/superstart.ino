@@ -8,9 +8,11 @@
 const char* ssid = "LaMasseBox_2.4GHz_EXT";
 const char* password = "mastercraft";
 
-Servo myServo;
-const int servoPin = 18; // Changed from 18 because 18 is now LED
-const int ledPin = 19;
+Servo myServo0;
+Servo myServo1;
+const int servo0 = 18;
+const int servo1 = 19; 
+const int ledPin = 23;
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC
@@ -26,8 +28,10 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW); // LED OFF
 
-  myServo.setPeriodHertz(50);
-  myServo.attach(servoPin, 500, 2500);
+  myServo0.setPeriodHertz(50);
+  myServo1.setPeriodHertz(50);
+  myServo0.attach(servo0, 500, 2500);
+  myServo1.attach(servo1, 500, 2500);
 
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
@@ -72,16 +76,20 @@ void loop() {
     if (diff <= 0) {
       Serial.println("==> Time reached! Triggering servo!");
 
-      myServo.write(0);   // Clockwise
+      myServo0.write(0);
+      myServo1.write(180);   // Clockwise
       delay(5000);
 
-      myServo.write(90);  // Stop
+      myServo0.write(90);  // Stop
+      myServo1.write(90);
       delay(500);
 
-      myServo.write(180); // Counterclockwise
+      myServo0.write(180); // Counterclockwise
+      myServo1.write(0);
       delay(5000);
 
-      myServo.write(90);  // Stop
+      myServo0.write(90);  // Stop
+      myServo1.write(90);
       delay(500);
 
       hasRun = true; // Only run once
