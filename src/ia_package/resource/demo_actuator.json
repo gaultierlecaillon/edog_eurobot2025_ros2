@@ -9,15 +9,7 @@
     {
       "name": "Starting Blocks",
       "actions": [
-        { "calibrate": "True" },
-        { "waiting_tirette": true },
-        { "waiting_tirette": false }
-      ]
-    },
-    {
-      "name": "Build Scene",
-      "actions": [
-        { "build": "" }
+        { "demo_actuator": "" }
       ]
     }
   ]

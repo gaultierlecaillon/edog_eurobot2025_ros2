@@ -47,6 +47,7 @@ class ActuatorService(Node):
         self.initServo()
         self.initStepper()        
         self.initPump()
+        self.is_homed_callback()
 
         ''' Subscribers '''       
         self.create_subscription(
@@ -60,17 +61,17 @@ class ActuatorService(Node):
         if not hasattr(self, 'voice_publisher'):
             self.voice_publisher = self.create_publisher(String, "voice_topic", 10)
         
-        ''' Services '''
-        self.create_service(
-            CmdActuatorService,
-            "is_homed_service",
-            self.is_homed_callback
-        )
-        
+        ''' Services '''        
         self.create_service(
             CmdActuatorService,
             "cmd_build_service",
             self.build_callback
+        )
+        
+        self.create_service(
+            CmdActuatorService,
+            "cmd_demo_actuator_service",
+            self.demo_actuator_callback
         )
 
         self.publish_pid()
@@ -81,6 +82,32 @@ class ActuatorService(Node):
         msg.data = os.getpid()  # Get the current process ID
         #self.get_logger().error(f'\033[91m[publish_pid] {msg.data}\033[0m')
         self.pid_publisher.publish(msg)
+
+    def demo_actuator_callback(self, request, response):
+        self.get_logger().info(f"demo_actuator_callback Called : param={request.param}")
+        
+        try:
+            #self.move_elevator(self.actuator_config['elevator']['light_support']);
+            #self.move_elevator(self.actuator_config['elevator']['down']);
+            
+            self.openServo([1, 2, 4, 5], self.actuator_config['demo_actuator']['delay']);
+            time.sleep(1);
+            self.closeServo([1, 2, 4, 5]);    
+            time.sleep(0.5);  
+            
+            self.pump(True);  
+            self.openServo([1, 2, 4, 5]);
+            time.sleep(1);
+            self.closeServo([1, 2, 4, 5]);
+            self.pump(False); 
+                                     
+            response.success = True            
+            return response
+        except Exception as e:
+            self.get_logger().error(f"Failed to execute build_callback: {e}")
+            response.success = False
+
+
 
     def build_callback(self, request, response):
         self.get_logger().info(f"build_callback Called : param={request.param}")
@@ -109,8 +136,7 @@ class ActuatorService(Node):
             return response
         except Exception as e:
             self.get_logger().error(f"Failed to execute build_callback: {e}")
-            response.success = False
-            
+            response.success = False            
         
     def build_callback_old(self, request, response):
         self.get_logger().info(f"build_callback old Called : param={request.param}")
@@ -278,7 +304,7 @@ class ActuatorService(Node):
         GPIO.setup(self.PUMP_GPIO, GPIO.OUT)
         GPIO.output(self.PUMP_GPIO, GPIO.LOW)
         
-    def is_homed_callback(self, request, response):
+    def is_homed_callback(self):
         self.get_logger().info("Initialization Elevator: searching for endstop...")
 
         GPIO.setup(self.endstop_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -297,9 +323,6 @@ class ActuatorService(Node):
         GPIO.output(self.EN_pin, GPIO.HIGH)
         self.elevator_position = 0
         self.get_logger().info("✅ Elevator homed.")
-
-        response.success = True
-        return response
 
     def initServo(self):
         #self.kit.servo[0].angle = self.actuator_config['grabber']['motor0']['close']
@@ -325,10 +348,12 @@ class ActuatorService(Node):
         self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
         self.kit.servo[5].angle = self.actuator_config['grabber']['motor5']['close']
         
-    def openServo(self, listServo):
+    def openServo(self, listServo, delay=0):
         for i in range(len(listServo)):
             self.kit.servo[listServo[i]].angle = self.actuator_config['grabber']['motor' + str(listServo[i])]['open']
-    
+            if delay > 0 and i != len(listServo) - 1:
+                time.sleep(delay)
+            
     def closeServo(self, listServo):
         for i in range(len(listServo)):
             self.kit.servo[listServo[i]].angle = self.actuator_config['grabber']['motor' + str(listServo[i])]['close']

@@ -35,5 +35,8 @@
     "step_delay": 0.0005,
     "initial_delay": 0.00002,
     "loop_delay": 0
+  },
+  "demo_actuator": {
+    "delay": 0.25
   }
 }
