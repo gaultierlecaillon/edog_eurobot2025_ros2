@@ -82,9 +82,38 @@ class ActuatorService(Node):
         #self.get_logger().error(f'\033[91m[publish_pid] {msg.data}\033[0m')
         self.pid_publisher.publish(msg)
 
-    
     def build_callback(self, request, response):
         self.get_logger().info(f"build_callback Called : param={request.param}")
+        if self.elevator_position == -1:
+                    self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
+                    response.success = False
+                    return response
+                
+        try: 
+            # Get middle colomn
+            self.move_elevator(self.actuator_config['elevator']['light_support']);
+            self.cmd_forward(-150, 'slow', False);
+            self.push_board();
+            
+            # Pile up
+            self.move_elevator(self.actuator_config['elevator']['approach_etage_1'] * 0.9);
+            self.cmd_forward(150, 'slow', False);
+            self.move_elevator(self.actuator_config['elevator']['approach_etage_1']);
+            time.sleep(0.5);
+            self.move_elevator(self.actuator_config['elevator']['depose_etage_1']);
+            self.openServo([1, 2]);
+            time.sleep(0.5);
+            self.cmd_forward(-100, 'normal', False);
+            
+            response.success = True            
+            return response
+        except Exception as e:
+            self.get_logger().error(f"Failed to execute build_callback: {e}")
+            response.success = False
+            
+        
+    def build_callback_old(self, request, response):
+        self.get_logger().info(f"build_callback old Called : param={request.param}")
         if self.elevator_position == -1:
             self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
             response.success = False
@@ -277,7 +306,25 @@ class ActuatorService(Node):
         self.kit.servo[1].angle = self.actuator_config['grabber']['motor1']['close']
         self.kit.servo[2].angle = self.actuator_config['grabber']['motor2']['close']
         #self.kit.servo[3].angle = self.actuator_config['grabber']['motor3']['close']
+        #self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
+        self.kit.servo[5].angle = self.actuator_config['grabber']['motor5']['close']
     
+    def push_board(self):
+        target_angle = self.actuator_config['grabber']['motor4']['open']        
+        current_angle = self.actuator_config['grabber']['motor4']['close']
+
+        step_delay = 0.011  # Adjust for desired speed
+        step_size = 1      # Adjust for smoothness of servo motion
+        
+        # Gradually move servo 4 and 5
+        for angle in range(int(current_angle), int(target_angle) + 1, step_size):
+            self.kit.servo[4].angle = angle
+            self.kit.servo[5].angle = angle
+            time.sleep(step_delay)
+        
+        self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
+        self.kit.servo[5].angle = self.actuator_config['grabber']['motor5']['close']
+        
     def openServo(self, listServo):
         for i in range(len(listServo)):
             self.kit.servo[listServo[i]].angle = self.actuator_config['grabber']['motor' + str(listServo[i])]['open']

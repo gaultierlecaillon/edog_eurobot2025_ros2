@@ -1,16 +1,29 @@
 {
   "grabber": {
+    "motor0": {
+    },
     "motor1": {
       "close": 15,
-      "open": 40
+      "open": 50
     },
     "motor2": {
       "close": 173,
-      "open": 150
+      "open": 140
+    },
+    "motor3": {
+    },
+    "motor4": {
+      "close": 0,
+      "open": 90
+    },
+    "motor5": {
+      "close": 0,
+      "open": 90
     }
   },
   "elevator": {      
       "down": 10,
+      "light_support": 400,
       "suction": 3400,
       "drop_suction": 3500,
       "approach_etage_1": 3700,

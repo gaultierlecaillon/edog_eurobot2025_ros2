@@ -10,6 +10,7 @@
       "name": "Starting Blocks",
       "actions": [
         { "home_elevator": "" },
+        { "calibrate": "True" },
         { "waiting_tirette": true },
         { "waiting_tirette": false }
       ]
@@ -17,7 +18,7 @@
     {
       "name": "grab 1st plants",
       "actions": [
-        { "grab": "" }
+        { "build": "" }
       ]
     }
   ]
