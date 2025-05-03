@@ -17,15 +17,22 @@
       ]
     },
     {
-      "name": "grab 1st plants",
+      "name": "1st build",
       "actions": [
         { "forward": "-150" },
         { "forward": "50" },
         { "forward": "-50" },
-        { "forward": "250" },
-        { "goto": "-725,400,180" },
-        { "forward": "250" },
-        { "buil": "" }
+        { "forward": "500" },
+        { "goto": "-725,500,180" },
+        { "build": "" }
+      ]
+    }
+    ,
+    {
+      "name": "return home",
+      "actions": [
+        { "forward": "-200" },
+        { "goto": "-200,300,0" }
       ]
     }
   ]

@@ -87,7 +87,8 @@ class ActuatorService(Node):
         self.get_logger().info(f"demo_actuator_callback Called : param={request.param}")
         
         try:
-            self.move_elevator(self.actuator_config['elevator']['light_support']);
+            self.move_elevator(self.actuator_config['elevator']['light_support']);            
+            time.sleep(0.1);
             self.move_elevator(self.actuator_config['elevator']['down']);
             
             self.openServo([1, 2, 4, 5, 6], self.actuator_config['demo_actuator']['delay']);
@@ -111,12 +112,9 @@ class ActuatorService(Node):
 
     def build_callback(self, request, response):
         self.get_logger().info(f"build_callback Called : param={request.param}")
-        if self.elevator_position == -1:
-                    self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
-                    response.success = False
-                    return response
-                
-        try:      
+                        
+        try:   
+            self.move_elevator(self.actuator_config['elevator']['down']);   
             self.cmd_forward(150, 'slow', False);
             time.sleep(1.5);
        
@@ -160,12 +158,13 @@ class ActuatorService(Node):
             self.get_logger().info("Pump OFF")
             GPIO.output(self.PUMP_GPIO, GPIO.LOW)
         
-    def move_elevator(self, step):
+    def move_elevator(self, step):                  
+                    
         step = int(step)  # Convert to int if it's a float
         if self.elevator_position == -1:
             self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
             raise ValueError("Elevator not homed, cannot move elevator.")
-        if step < 0 or step > 3700:
+        if step < 0 or step > self.actuator_config['elevator']['approach_etage_1']:
             self.get_logger().error(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
             raise ValueError(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
         
@@ -270,7 +269,7 @@ class ActuatorService(Node):
         target_angle = self.actuator_config['grabber']['motor4']['open']        
         current_angle = self.actuator_config['grabber']['motor4']['close']
 
-        step_delay = 0.011  # Adjust for desired speed
+        step_delay = 0.01  # Adjust for desired speed
         step_size = 1      # Adjust for smoothness of servo motion
         
         # Gradually move servo 4 and 5
