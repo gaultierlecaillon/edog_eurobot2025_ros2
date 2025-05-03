@@ -227,8 +227,8 @@ class MotionService(Node):
                 y_mm = (self.odrv0.axis1.encoder.pos_estimate - self.pos_estimate_1) / \
                         self.config["calibration"]["linear"]["coef"]
 
-                new_x = x_mm * math.cos(math.radians(self.r_)) + self.x_
-                new_y = y_mm * math.sin(math.radians(self.r_)) + self.y_
+                new_x = -x_mm * math.sin(math.radians(self.r_)) + self.x_
+                new_y = y_mm * math.cos(math.radians(self.r_)) + self.y_
 
                 pos.x = int(new_x)
                 pos.y = int(new_y)
@@ -276,8 +276,8 @@ class MotionService(Node):
             self.setPIDGains(filename)
             
         self.current_motion['evitement'] = request.evitement
-        self.x_target = self.x_ + round(request.distance_mm * math.cos(math.radians(self.r_)), 2)
-        self.y_target = self.y_ + round(request.distance_mm * math.sin(math.radians(self.r_)), 2)
+        self.x_target = self.x_ - round(request.distance_mm * math.sin(math.radians(self.r_)), 2)
+        self.y_target = self.y_ + round(request.distance_mm * math.cos(math.radians(self.r_)), 2)
         self.motionForward(request.distance_mm)
 
         self.last_callback_service_requester = str(request.service_requester)
@@ -313,7 +313,7 @@ class MotionService(Node):
             self.get_logger().info(f"Cmd goto_callback received: {request}")
 
             # Calculate the target_angle in degrees to reach the point(x,y)
-            target_angle = math.degrees(math.atan2(request.y - self.y_, request.x - self.x_)) - self.r_
+            target_angle = -math.degrees(math.atan2(request.x - self.x_, request.y - self.y_)) - self.r_
             target_angle = self.clean_angle_rotation(target_angle)
 
             # Calculate the distance between A and B in mm

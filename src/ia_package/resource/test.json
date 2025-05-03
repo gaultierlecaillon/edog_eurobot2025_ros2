@@ -3,7 +3,7 @@
   "name": "strat_bleu.json",
   "description": "Strat Bleu",
   "color": "blue",
-  "startingPos": "-344,115,0",
+  "startingPos": "0,0,0",
   "timer": "1000",
   "strategy": [
     {
@@ -17,7 +17,8 @@
     {
       "name": "grab 1st plants",
       "actions": [
-        { "goto": "-344,400,0" }
+        { "goto": "0, 500,0" },
+        { "forward": "-500" }
       ]
     }
   ]
