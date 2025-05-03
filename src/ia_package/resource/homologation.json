@@ -11,13 +11,21 @@
       "actions": [
         { "calibrate": "True" },
         { "waiting_tirette": true },
+        { "forward": "150" },
+        { "demo_actuator": "" },
         { "waiting_tirette": false }
       ]
     },
     {
       "name": "grab 1st plants",
       "actions": [
-        { "goto": "-344,400,0" }
+        { "forward": "-150" },
+        { "forward": "50" },
+        { "forward": "-50" },
+        { "forward": "250" },
+        { "goto": "-725,400,180" },
+        { "forward": "250" },
+        { "buil": "" }
       ]
     }
   ]
