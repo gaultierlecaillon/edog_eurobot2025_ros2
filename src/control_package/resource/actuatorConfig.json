@@ -19,15 +19,19 @@
     "motor5": {
       "close": 0,
       "open": 90
+    },
+    "motor6": {
+      "close": 43,
+      "open": 15
     }
   },
   "elevator": {      
       "down": 10,
-      "light_support": 400,
+      "light_support": 300,
       "suction": 3400,
       "drop_suction": 3500,
       "approach_etage_1": 3700,
-      "depose_etage_1": 3200
+      "depose_etage_1": 3250
   },
   "stepper": {
     "step_type": "Half",
@@ -37,6 +41,6 @@
     "loop_delay": 0
   },
   "demo_actuator": {
-    "delay": 0.25
+    "delay": 0.2
   }
 }

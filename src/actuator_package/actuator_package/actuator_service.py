@@ -26,7 +26,7 @@ GPIO.setmode(GPIO.BCM)
 class ActuatorService(Node):
     # Stepper Config
     direction = 22  # Direction (DIR) GPIO Pin
-    step = 23  # Step GPIO Pin
+    step_pin = 23  # Step GPIO Pin
     EN_pin = 24  # enable pin (LOW to enable)
     endstop_pin = 17  # GPIO BCM for Endstop Switch V1.2
     
@@ -87,18 +87,18 @@ class ActuatorService(Node):
         self.get_logger().info(f"demo_actuator_callback Called : param={request.param}")
         
         try:
-            #self.move_elevator(self.actuator_config['elevator']['light_support']);
-            #self.move_elevator(self.actuator_config['elevator']['down']);
+            self.move_elevator(self.actuator_config['elevator']['light_support']);
+            self.move_elevator(self.actuator_config['elevator']['down']);
             
-            self.openServo([1, 2, 4, 5], self.actuator_config['demo_actuator']['delay']);
+            self.openServo([1, 2, 4, 5, 6], self.actuator_config['demo_actuator']['delay']);
             time.sleep(1);
-            self.closeServo([1, 2, 4, 5]);    
+            self.closeServo([1, 2, 4, 5, 6]);    
             time.sleep(0.5);  
             
             self.pump(True);  
-            self.openServo([1, 2, 4, 5]);
+            self.openServo([1, 2, 4, 5, 6]);
             time.sleep(1);
-            self.closeServo([1, 2, 4, 5]);
+            self.closeServo([1, 2, 4, 5, 6]);
             self.pump(False); 
                                      
             response.success = True            
@@ -116,21 +116,34 @@ class ActuatorService(Node):
                     response.success = False
                     return response
                 
-        try: 
-            # Get middle colomn
+        try:      
+            self.cmd_forward(150, 'slow', False);
+            time.sleep(1.5);
+       
+            # Get first plank
+            self.pump(True);        
+            self.openVentouse();
             self.move_elevator(self.actuator_config['elevator']['light_support']);
+            time.sleep(1);
+            self.closeVentouse();
+            
+            # Get middle colomn
             self.cmd_forward(-150, 'slow', False);
             self.push_board();
+            time.sleep(1);
+            self.openVentouse();
+            self.pump(False);
+            time.sleep(1);          
             
             # Pile up
-            self.move_elevator(self.actuator_config['elevator']['approach_etage_1'] * 0.9);
-            self.cmd_forward(150, 'slow', False);
             self.move_elevator(self.actuator_config['elevator']['approach_etage_1']);
-            time.sleep(0.5);
+            self.cmd_forward(150, 'slow', False);
+            time.sleep(1);
             self.move_elevator(self.actuator_config['elevator']['depose_etage_1']);
+            self.closeVentouse();
             self.openServo([1, 2]);
             time.sleep(0.5);
-            self.cmd_forward(-100, 'normal', False);
+            self.cmd_forward(-140, 'normal', False);
             
             response.success = True            
             return response
@@ -138,87 +151,7 @@ class ActuatorService(Node):
             self.get_logger().error(f"Failed to execute build_callback: {e}")
             response.success = False            
         
-    def build_callback_old(self, request, response):
-        self.get_logger().info(f"build_callback old Called : param={request.param}")
-        if self.elevator_position == -1:
-            self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
-            response.success = False
-            return response
-
-        try:  
-            # Move forward
-            self.cmd_forward(200, 'slow', False)
-            time.sleep(2)
-            
-            # Position the elevator to suction the first plank
-            step = self.actuator_config['elevator']['suction']
-            self.move_elevator(step*0.1)
-            
-            # Move backward
-            self.cmd_forward(-200, 'slow', False)
-            self.move_elevator(step)            
-            self.pump(True);
-            
-            # Rotate 180
-            self.cmd_rotate(180);
-            
-            # Move elevator down
-            step = self.actuator_config['elevator']['down']
-            self.move_elevator(step)
-            self.openServo([1, 2]);
-            
-            # Move backward
-            self.cmd_forward(-100, 'slow', False)
-            time.sleep(1.5)
-            
-            # Rotate 180
-            self.cmd_rotate(-180);            
-            step = self.actuator_config['elevator']['drop_suction']
-            self.move_elevator(step * 0.7)
-            
-            # Move forward
-            self.cmd_forward(100, 'slow', False)
-            self.move_elevator(step)            
-            self.pump(False);
-            time.sleep(1)
-            
-            # Move elevator down
-            step = self.actuator_config['elevator']['down']
-            self.move_elevator(step)
-            
-            # Move backward
-            self.cmd_forward(-100, 'slow', False)
-            time.sleep(1.5)
-            self.cmd_rotate(180);
-            time.sleep(2.5)
-            self.closeServo([1, 2]);
-            self.cmd_forward(100, 'slow', False)   
-            time.sleep(1.5)         
-            
-            # Rotate 180            
-            self.cmd_rotate(-180);
-            step = self.actuator_config['elevator']['approach_etage_1']
-            self.move_elevator(step*0.8)
-            self.cmd_forward(200, 'slow', False)
-            self.move_elevator(step)
-            time.sleep(1)
-            
-            step = self.actuator_config['elevator']['depose_etage_1']
-            self.move_elevator(step)
-            self.openServo([1, 2]);
-            self.cmd_forward(-100, 'slow', False)
-            time.sleep(2)
-            
-            self.cmd_rotate(-90);
-            time.sleep(2)
-            
-            
-            response.success = True            
-            return response
-        except Exception as e:
-            self.get_logger().error(f"Failed to execute build_callback: {e}")
-            response.success = False
-        
+   
     def pump(self, turn_on):
         if turn_on:
             self.get_logger().info("Pump ON")
@@ -294,7 +227,7 @@ class ActuatorService(Node):
     def initStepper(self):
         self.get_logger().info("Initialization Stepper (blocking)")
 
-        self.stepper_motor = RpiMotorLib.A4988Nema(self.direction, self.step, (21, 21, 21), "DRV8825")     
+        self.stepper_motor = RpiMotorLib.A4988Nema(self.direction, self.step_pin, (21, 21, 21), "DRV8825")     
         GPIO.setup(self.EN_pin, GPIO.OUT)
         GPIO.output(self.EN_pin, GPIO.HIGH)
         time.sleep(0.1)
@@ -329,8 +262,9 @@ class ActuatorService(Node):
         self.kit.servo[1].angle = self.actuator_config['grabber']['motor1']['close']
         self.kit.servo[2].angle = self.actuator_config['grabber']['motor2']['close']
         #self.kit.servo[3].angle = self.actuator_config['grabber']['motor3']['close']
-        #self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
+        self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
         self.kit.servo[5].angle = self.actuator_config['grabber']['motor5']['close']
+        self.kit.servo[6].angle = self.actuator_config['grabber']['motor6']['close']
     
     def push_board(self):
         target_angle = self.actuator_config['grabber']['motor4']['open']        
@@ -357,6 +291,12 @@ class ActuatorService(Node):
     def closeServo(self, listServo):
         for i in range(len(listServo)):
             self.kit.servo[listServo[i]].angle = self.actuator_config['grabber']['motor' + str(listServo[i])]['close']
+   
+    def openVentouse(self):
+        self.kit.servo[6].angle = self.actuator_config['grabber']['motor6']['open']
+        
+    def closeVentouse(self):
+        self.kit.servo[6].angle = self.actuator_config['grabber']['motor6']['close']
     
     def shutdown_callback(self, msg):       
         if msg.data:                  
