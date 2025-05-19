@@ -234,8 +234,8 @@ class MotionService(Node):
                 pos.y = int(new_y)
                 pos.r = float(self.r_)
                 self.publisher_pos.publish(pos)
-            else:
-                self.get_logger().info("Obstavle but not forward or backward")  
+            #else:
+                #self.get_logger().info("Obstavle but not forward or backward")  
 
             self.is_motion_complete()   
             

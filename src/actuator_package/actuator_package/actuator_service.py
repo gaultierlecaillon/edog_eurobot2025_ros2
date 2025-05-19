@@ -185,15 +185,17 @@ class ActuatorService(Node):
             
             
             # Pile up
-            self.move_elevator(self.actuator_config['elevator']['approach_etage_1']);
-         
+            self.move_elevator(self.actuator_config['elevator']['approach_etage_1']);         
             self.cmd_forward(150, 'slow', False);
             time.sleep(1);
             self.move_elevator(self.actuator_config['elevator']['depose_etage_1']);
             self.closeVentouse();
             self.openServo([1, 2]);
-            time.sleep(0.5);
-            self.cmd_forward(-140, 'normal', False);
+            time.sleep(1);
+            self.cmd_forward(-200, 'normal', False);            
+            
+            self.move_elevator(self.actuator_config['elevator']['down']);
+            self.initServo();
             
             response.success = True            
             return response
