@@ -230,6 +230,38 @@ class IANode(Node):
 
         self.get_logger().info(f"[Publish] {request} to {service_name}")
         
+    def grab(self, param):
+        service_name = "cmd_grab_service"
+        self.get_logger().info(f"Performing 'Grab' action with param: {param}")
+        client = self.create_client(CmdActuatorService, service_name)
+        while not client.wait_for_service(1):
+            self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
+
+        request = CmdActuatorService.Request()
+        request.param = param
+        future = client.call_async(request)
+
+        future.add_done_callback(
+            partial(self.callback_current_action))
+
+        self.get_logger().info(f"[Publish] {request} to {service_name}")
+        
+    def drop(self, param):
+        service_name = "cmd_drop_service"
+        self.get_logger().info(f"Performing 'Drop' action with param: {param}")
+        client = self.create_client(CmdActuatorService, service_name)
+        while not client.wait_for_service(1):
+            self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
+
+        request = CmdActuatorService.Request()
+        request.param = param
+        future = client.call_async(request)
+
+        future.add_done_callback(
+            partial(self.callback_current_action))
+
+        self.get_logger().info(f"[Publish] {request} to {service_name}")
+        
     def demo_actuator(self, param):
         service_name = "cmd_demo_actuator_service"
         self.get_logger().info(f"Performing 'demo_actuator' action with param: {param}")

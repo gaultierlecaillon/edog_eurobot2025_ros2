@@ -9,16 +9,9 @@
     {
       "name": "Starting Blocks",
       "actions": [
-        { "calibrate": "True" },
         { "waiting_tirette": true },
-        { "waiting_tirette": false }
-      ]
-    },
-    {
-      "name": "grab 1st plants",
-      "actions": [
-        { "goto": "0, 500,0" },
-        { "forward": "-500" }
+        { "grab": "" },
+        { "drop": "" }        
       ]
     }
   ]

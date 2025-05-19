@@ -70,6 +70,18 @@ class ActuatorService(Node):
         
         self.create_service(
             CmdActuatorService,
+            "cmd_grab_service",
+            self.grab_callback
+        )
+        
+        self.create_service(
+            CmdActuatorService,
+            "cmd_drop_service",
+            self.drop_callback
+        )
+        
+        self.create_service(
+            CmdActuatorService,
             "cmd_demo_actuator_service",
             self.demo_actuator_callback
         )
@@ -87,54 +99,94 @@ class ActuatorService(Node):
         self.get_logger().info(f"demo_actuator_callback Called : param={request.param}")
         
         try:
-            self.move_elevator(self.actuator_config['elevator']['light_support']);            
-            time.sleep(0.1);
-            self.move_elevator(self.actuator_config['elevator']['down']);
-            
-            self.openServo([1, 2, 4, 5, 6], self.actuator_config['demo_actuator']['delay']);
+            self.openServo([0, 1, 2, 3, 4, 5, 6], self.actuator_config['demo_actuator']['delay']);
             time.sleep(1);
-            self.closeServo([1, 2, 4, 5, 6]);    
+            self.closeServo([0, 1, 2, 3, 4, 5, 6]);    
             time.sleep(0.5);  
             
             self.pump(True);  
-            self.openServo([1, 2, 4, 5, 6]);
+            self.openServo([0, 1, 2, 3, 4, 5, 6]);
             time.sleep(1);
-            self.closeServo([1, 2, 4, 5, 6]);
+            self.closeServo([0, 1, 2, 3, 4, 5, 6]);
             self.pump(False); 
+            
+            
+            self.move_elevator(self.actuator_config['elevator']['carry']);            
+            time.sleep(0.5);
+            self.move_elevator(self.actuator_config['elevator']['down']);
                                      
             response.success = True            
             return response
         except Exception as e:
-            self.get_logger().error(f"Failed to execute build_callback: {e}")
+            self.get_logger().error(f"Failed to execute demo_actuator_callback: {e}")
             response.success = False
 
-
+    def grab_callback(self, request, response):
+        self.get_logger().info(f"grab_callback Called : param={request.param}")
+             
+        if (self.elevator_position != self.actuator_config['elevator']['down']):
+            self.get_logger().error("🚧 Elevator not down, aborting grab callback ⚠️")
+            response.success = False
+            return response
+                        
+        try:
+            self.closeServo([0, 1, 2, 3]);
+            self.cmd_forward(20, 'slow', False);
+            time.sleep(0.5);
+            self.move_elevator(self.actuator_config['elevator']['carry']);
+            
+            response.success = True            
+            return response
+        except Exception as e:
+            self.get_logger().error(f"Failed to execute grab_callback: {e}")
+            response.success = False  
+            
+    def drop_callback(self, request, response):
+        self.get_logger().info(f"drop_callback Called : param={request.param}")
+                            
+        try:        
+            self.openServo([0, 1, 2, 3]);    
+            self.move_elevator(self.actuator_config['elevator']['down']);
+            self.cmd_forward(-200, 'slow', False);
+            time.sleep(1.5);
+            
+            response.success = True            
+            return response
+        except Exception as e:
+            self.get_logger().error(f"Failed to execute drop_callback: {e}")
+            response.success = False  
 
     def build_callback(self, request, response):
         self.get_logger().info(f"build_callback Called : param={request.param}")
-                        
-        try:   
-            self.move_elevator(self.actuator_config['elevator']['down']);   
-            self.cmd_forward(150, 'slow', False);
-            time.sleep(1.5);
-       
+                 
+        if (self.elevator_position != self.actuator_config['elevator']['down']):
+            self.get_logger().error("🚧 Elevator not down, aborting build callback ⚠️")
+            response.success = False
+            return response   
+            
+        try:
             # Get first plank
+            self.closeServo([1, 2]);
             self.pump(True);        
             self.openVentouse();
-            self.move_elevator(self.actuator_config['elevator']['light_support']);
             time.sleep(1);
             self.closeVentouse();
+            time.sleep(0.5);
             
             # Get middle colomn
+            self.openServo([0, 3]);
             self.cmd_forward(-150, 'slow', False);
             self.push_board();
-            time.sleep(1);
+
+            time.sleep(1.5);
             self.openVentouse();
             self.pump(False);
             time.sleep(1);          
             
+            
             # Pile up
             self.move_elevator(self.actuator_config['elevator']['approach_etage_1']);
+         
             self.cmd_forward(150, 'slow', False);
             time.sleep(1);
             self.move_elevator(self.actuator_config['elevator']['depose_etage_1']);
@@ -159,26 +211,35 @@ class ActuatorService(Node):
             GPIO.output(self.PUMP_GPIO, GPIO.LOW)
         
     def move_elevator(self, step):                  
-                    
-        step = int(step)  # Convert to int if it's a float
+        step = int(step)  # Ensure it's an integer
+
+        if step == self.elevator_position:
+            self.get_logger().info(f"Elevator already at position {step}, no movement needed.")
+            return
+
         if self.elevator_position == -1:
             self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
             raise ValueError("Elevator not homed, cannot move elevator.")
+
         if step < 0 or step > self.actuator_config['elevator']['approach_etage_1']:
             self.get_logger().error(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
             raise ValueError(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
-        
+
         GPIO.output(self.EN_pin, GPIO.LOW)
         delta = step - self.elevator_position
-        self.get_logger().info(f"Move elevator to {abs(delta)}")
+        self.get_logger().info(f"Move elevator by {abs(delta)} steps")
 
-        self.stepper_motor.motor_go(delta > 0,  # True=Clockwise, False=Counter-Clockwise
-                                    "Half",  # Step type (Full,Half,1/4,1/8,1/16,1/32)
-                                    abs(delta),  # number of steps
-                                    .0005,  # step delay [sec]
-                                    False,  # True = print verbose output
-                                    0.00002)  # initial delay [sec]
-        self.elevator_position = step       
+        self.stepper_motor.motor_go(
+            delta > 0,           # Direction
+            "Half",              # Step type
+            abs(delta),          # Number of steps
+            0.0005,              # Step delay
+            False,               # Verbose
+            0.00002              # Initial delay
+        )
+
+        self.elevator_position = step
+        
 
     ''' Motion Functions '''
     def cmd_forward(self, distance_mm, mode='normal', evitement=True):
@@ -252,15 +313,16 @@ class ActuatorService(Node):
                 self.actuator_config['stepper']['initial_delay'] # initial delay [sec]
             )
 
-        GPIO.output(self.EN_pin, GPIO.HIGH)
         self.elevator_position = 0
+        self.move_elevator(self.actuator_config['elevator']['down'])
+        GPIO.output(self.EN_pin, GPIO.HIGH)        
         self.get_logger().info("✅ Elevator homed.")
 
     def initServo(self):
-        #self.kit.servo[0].angle = self.actuator_config['grabber']['motor0']['close']
+        self.kit.servo[0].angle = self.actuator_config['grabber']['motor0']['close']
         self.kit.servo[1].angle = self.actuator_config['grabber']['motor1']['close']
         self.kit.servo[2].angle = self.actuator_config['grabber']['motor2']['close']
-        #self.kit.servo[3].angle = self.actuator_config['grabber']['motor3']['close']
+        self.kit.servo[3].angle = self.actuator_config['grabber']['motor3']['close']
         self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
         self.kit.servo[5].angle = self.actuator_config['grabber']['motor5']['close']
         self.kit.servo[6].angle = self.actuator_config['grabber']['motor6']['close']
@@ -269,7 +331,7 @@ class ActuatorService(Node):
         target_angle = self.actuator_config['grabber']['motor4']['open']        
         current_angle = self.actuator_config['grabber']['motor4']['close']
 
-        step_delay = 0.01  # Adjust for desired speed
+        step_delay = 0.008  # Adjust for desired speed
         step_size = 1      # Adjust for smoothness of servo motion
         
         # Gradually move servo 4 and 5

@@ -1,8 +1,8 @@
 {
   "type": "Strategy",
-  "name": "strat_bleu.json",
-  "description": "Strat Bleu",
-  "color": "blue",
+  "name": "strat_jaune.json",
+  "description": "Strat Jaune",
+  "color": "yellow",
   "startingPos": "-344,115,0",
   "timer": "1000",
   "strategy": [
@@ -19,7 +19,17 @@
     {
       "name": "1st build",
       "actions": [
-        { "forward": "500" },
+        { "goto": "-430,700,0" },
+        { "forward": "130" },
+        { "grab": "" },
+        { "goto": "-300,300,180" },
+        { "drop": "" }
+      ]
+    }
+    ,
+    {
+      "name": "2nd build",
+      "actions": [
         { "goto": "-725,600,180" },
         { "forward": "230" },
         { "forward": "150" },
