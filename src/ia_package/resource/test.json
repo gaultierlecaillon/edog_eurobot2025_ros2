@@ -10,8 +10,7 @@
       "name": "Starting Blocks",
       "actions": [
         { "waiting_tirette": true },
-        { "grab": "" },
-        { "drop": "" }        
+        { "demo_actuator": "" } 
       ]
     }
   ]

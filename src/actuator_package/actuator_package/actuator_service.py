@@ -120,6 +120,7 @@ class ActuatorService(Node):
         except Exception as e:
             self.get_logger().error(f"Failed to execute demo_actuator_callback: {e}")
             response.success = False
+            return response
 
     def grab_callback(self, request, response):
         self.get_logger().info(f"grab_callback Called : param={request.param}")
@@ -139,7 +140,8 @@ class ActuatorService(Node):
             return response
         except Exception as e:
             self.get_logger().error(f"Failed to execute grab_callback: {e}")
-            response.success = False  
+            response.success = False
+            return response
             
     def drop_callback(self, request, response):
         self.get_logger().info(f"drop_callback Called : param={request.param}")
@@ -154,7 +156,8 @@ class ActuatorService(Node):
             return response
         except Exception as e:
             self.get_logger().error(f"Failed to execute drop_callback: {e}")
-            response.success = False  
+            response.success = False
+            return response
 
     def build_callback(self, request, response):
         self.get_logger().info(f"build_callback Called : param={request.param}")
@@ -201,7 +204,8 @@ class ActuatorService(Node):
             return response
         except Exception as e:
             self.get_logger().error(f"Failed to execute build_callback: {e}")
-            response.success = False            
+            response.success = False
+            return response
         
    
     def pump(self, turn_on):
