@@ -38,7 +38,7 @@
       "depose_etage_1": 3250
   },
   "stepper": {
-    "step_type": "Half",
+    "step_type": "Full",
     "step": 20,
     "step_delay": 0.0005,
     "initial_delay": 0.00002,

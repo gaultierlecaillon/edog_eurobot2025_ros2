@@ -1,7 +1,7 @@
 {
   "type": "Strategy",
-  "name": "strat_bleu.json",
-  "description": "Strat Bleu",
+  "name": "test.json",
+  "description": "Test",
   "color": "blue",
   "startingPos": "0,0,0",
   "timer": "1000",
@@ -10,7 +10,7 @@
       "name": "Starting Blocks",
       "actions": [
         { "waiting_tirette": true },
-        { "demo_actuator": "" } 
+        { "demo_actuator": "" }
       ]
     }
   ]

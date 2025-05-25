@@ -224,7 +224,7 @@ class ActuatorService(Node):
             return
 
         if self.elevator_position == -1:
-            self.get_logger().error("🚧 Elevator not homed, aborting grab ⚠️")
+            self.get_logger().error("🚧 Elevator not homed, aborting Moving elevator ⚠️")
             raise ValueError("Elevator not homed, cannot move elevator.")
 
         if step < 0 or step > self.actuator_config['elevator']['approach_etage_1']:
@@ -237,7 +237,7 @@ class ActuatorService(Node):
 
         self.stepper_motor.motor_go(
             delta > 0,           # Direction
-            "Half",              # Step type
+            "Full",              # Step type
             abs(delta),          # Number of steps
             0.0005,              # Step delay
             False,               # Verbose
