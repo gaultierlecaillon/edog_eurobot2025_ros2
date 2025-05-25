@@ -1,20 +1,20 @@
 {
   "grabber": {
     "motor0": {
-      "close": 10,
-      "open": 29
+      "close": 8,
+      "open": 24
     },
     "motor1": {
-      "close": 15,
-      "open": 50
+      "close": 11,
+      "open": 40
     },
     "motor2": {
-      "close": 173,
-      "open": 140
+      "close": 162,
+      "open": 136
     },
     "motor3": {
-      "close": 170,
-      "open": 152
+      "close": 158,
+      "open": 143
     },
     "motor4": {
       "close": 0,
@@ -25,7 +25,7 @@
       "open": 90
     },
     "motor6": {
-      "close": 43,
+      "close": 40,
       "open": 15
     }
   },

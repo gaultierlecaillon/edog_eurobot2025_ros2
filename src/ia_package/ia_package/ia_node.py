@@ -321,6 +321,7 @@ class IANode(Node):
             self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
 
         request = CmdRotateService.Request()
+        request.mode = 'normal'
         request.angle_deg = float(param)
         request.service_requester = str(self.__class__.__name__)
 
