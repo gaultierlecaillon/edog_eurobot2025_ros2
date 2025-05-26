@@ -9,14 +9,9 @@ from std_msgs.msg import Bool
 from robot_interfaces.srv import CmdActuatorService
 from robot_interfaces.srv import CmdForwardService
 from robot_interfaces.srv import CmdRotateService
-from robot_interfaces.srv import BoolBool
-from robot_interfaces.msg import MotionCompleteResponse
-from robot_interfaces.srv import CmdPositionService
+
 from example_interfaces.msg import String
 from std_msgs.msg import Int32
-
-# Stepper (set first BCM)
-from RpiMotorLib import RpiMotorLib
 
 # Servo
 from adafruit_servokit import ServoKit
@@ -24,11 +19,9 @@ from adafruit_servokit import ServoKit
 GPIO.setmode(GPIO.BCM)
 
 class ActuatorService(Node):
-    # Stepper Config
-    direction = 22  # Direction (DIR) GPIO Pin
-    step_pin = 23  # Step GPIO Pin
-    EN_pin = 24  # enable pin (LOW to enable)
-    endstop_pin = 17  # GPIO BCM for Endstop Switch V1.2
+    
+    #Servo Elevator
+    SERVO_ID = 7
     
     # Pump Config
     PUMP_GPIO = 27
@@ -44,10 +37,8 @@ class ActuatorService(Node):
 
         self.actuator_config = self.loadActuatorConfig()
         self.kit = ServoKit(channels=16)
-        self.initServo()
-        self.initStepper()        
+        self.initServo()       
         self.initPump()
-        self.is_homed_callback()
 
         ''' Subscribers '''       
         self.create_subscription(
@@ -149,8 +140,10 @@ class ActuatorService(Node):
         try:        
             self.openServo([0, 1, 2, 3]);    
             self.move_elevator(self.actuator_config['elevator']['down']);
+            time.sleep(0.5);
             self.cmd_forward(-200, 'slow', False);
             time.sleep(1.5);
+            self.closeServo([0, 1, 2, 3]);            
             
             response.success = True            
             return response
@@ -163,9 +156,14 @@ class ActuatorService(Node):
         self.get_logger().info(f"build_callback Called : param={request.param}")
                  
         if (self.elevator_position != self.actuator_config['elevator']['down']):
-            self.get_logger().error("🚧 Elevator not down, aborting build callback ⚠️")
-            response.success = False
-            return response   
+            push_pos = int(self.actuator_config['elevator']['push'])
+            carry_pos = int(self.actuator_config['elevator']['carry'])
+            if self.elevator_position == push_pos or self.elevator_position == carry_pos:
+                self.move_elevator(int(self.actuator_config['elevator']['down']))
+            else:
+                self.get_logger().error(f"🚧 Elevator not down (current: {self.elevator_position}), aborting build callback ⚠️")
+                response.success = False
+                return response   
             
         try:
             # Get first plank
@@ -176,8 +174,10 @@ class ActuatorService(Node):
             self.closeVentouse();
             time.sleep(0.5);
             
-            # Get middle colomn
+            # Get middle colomn            
+            self.move_elevator(self.actuator_config['elevator']['push']);
             self.openServo([0, 3]);
+            time.sleep(0.5)
             self.cmd_forward(-150, 'slow', False);
             self.push_board();
 
@@ -190,13 +190,13 @@ class ActuatorService(Node):
             # Pile up
             self.move_elevator(self.actuator_config['elevator']['approach_etage_1']);         
             self.cmd_forward(150, 'slow', False);
-            time.sleep(1);
+            time.sleep(1.5);
             self.move_elevator(self.actuator_config['elevator']['depose_etage_1']);
             self.closeVentouse();
             self.openServo([1, 2]);
             time.sleep(1);
             self.cmd_forward(-200, 'normal', False);            
-            
+            time.sleep(1.5);
             self.move_elevator(self.actuator_config['elevator']['down']);
             self.initServo();
             
@@ -216,33 +216,34 @@ class ActuatorService(Node):
             self.get_logger().info("Pump OFF")
             GPIO.output(self.PUMP_GPIO, GPIO.LOW)
         
-    def move_elevator(self, step):                  
-        step = int(step)  # Ensure it's an integer
+    def move_elevator(self, step):
+        step = int(step)
 
         if step == self.elevator_position:
             self.get_logger().info(f"Elevator already at position {step}, no movement needed.")
             return
+        
+        if self.elevator_position < 0:
+            self.get_logger().error("Elevator position not initialized.")
+            raise RuntimeError("Elevator position not initialized.")
 
-        if self.elevator_position == -1:
-            self.get_logger().error("🚧 Elevator not homed, aborting Moving elevator ⚠️")
-            raise ValueError("Elevator not homed, cannot move elevator.")
 
-        if step < 0 or step > self.actuator_config['elevator']['approach_etage_1']:
-            self.get_logger().error(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
-            raise ValueError(f"Invalid elevator step: {step}. Must be between 0 and 3700.")
+        if step < self.actuator_config['elevator']['down'] or step > self.actuator_config['elevator']['approach_etage_1']:
+            self.get_logger().error(f"Invalid elevator step: {step}. Out of range.")
+            raise ValueError(f"Invalid elevator step: {step}. Out of range.")
 
-        GPIO.output(self.EN_pin, GPIO.LOW)
-        delta = step - self.elevator_position
-        self.get_logger().info(f"Move elevator by {abs(delta)} steps")
+        current = self.elevator_position
+        target = step
+        speed = 1.2
+        step_delay = 0.01
+        steps = abs(target - current)
 
-        self.stepper_motor.motor_go(
-            delta > 0,           # Direction
-            "Full",              # Step type
-            abs(delta),          # Number of steps
-            0.0005,              # Step delay
-            False,               # Verbose
-            0.00002              # Initial delay
-        )
+        for i in range(steps + 1):
+            t = i / steps
+            ease = t * t * (3 - 2 * t)  # Smoothstep easing
+            new_angle = int(current + (target - current) * ease)
+            self.kit.servo[self.SERVO_ID].angle = new_angle
+            time.sleep(step_delay / speed)
 
         self.elevator_position = step
         
@@ -284,47 +285,30 @@ class ActuatorService(Node):
     ''' EndMotion Functions '''          
     
     def loadActuatorConfig(self):
-        with open('/home/edog/ros2_ws/src/control_package/resource/actuatorConfig.json') as file:
-            config = json.load(file)
-        self.get_logger().info(f"[Loading Actuator Config] actuatorConfig.json")
+        config_path = '/home/edog/ros2_ws/src/control_package/resource/actuatorConfig.json'
+        try:
+            with open(config_path, 'r') as file:
+                config = json.load(file)
+                self.get_logger().info(f"[Config Loaded] actuatorConfig.json successfully")
+                return config
+        except FileNotFoundError:
+            self.get_logger().error(f"[Config Error] File not found: {config_path}")
+            raise
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f"[Config Error] JSON decode error in {config_path}: {e}")
+            raise
+        except Exception as e:
+            self.get_logger().error(f"[Config Error] Unexpected error loading config: {e}")
+            raise
 
-        return config
-    
-    def initStepper(self):
-        self.get_logger().info("Initialization Stepper (blocking)")
-
-        self.stepper_motor = RpiMotorLib.A4988Nema(self.direction, self.step_pin, (21, 21, 21), "DRV8825")     
-        GPIO.setup(self.EN_pin, GPIO.OUT)
-        GPIO.output(self.EN_pin, GPIO.HIGH)
-        time.sleep(0.1)
         
     def initPump(self):
         self.get_logger().info("Initialization Pump")
         GPIO.setup(self.PUMP_GPIO, GPIO.OUT)
         GPIO.output(self.PUMP_GPIO, GPIO.LOW)
-        
-    def is_homed_callback(self):
-        self.get_logger().info("Initialization Elevator: searching for endstop...")
-
-        GPIO.setup(self.endstop_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.output(self.EN_pin, GPIO.LOW)
-
-        while GPIO.input(self.endstop_pin):
-            self.stepper_motor.motor_go(
-                False, # True=Clockwise, False=Counter-Clockwise
-                self.actuator_config['stepper']['step_type'], # Step type (Full,Half,1/4,1/8,1/16,1/32)
-                self.actuator_config['stepper']['step'], # number of steps
-                self.actuator_config['stepper']['step_delay'], # step delay [sec]
-                False, # True = print verbose output
-                self.actuator_config['stepper']['initial_delay'] # initial delay [sec]
-            )
-
-        self.elevator_position = 0
-        self.move_elevator(self.actuator_config['elevator']['down'])
-        GPIO.output(self.EN_pin, GPIO.HIGH)        
-        self.get_logger().info("✅ Elevator homed.")
 
     def initServo(self):
+        # Servos
         self.kit.servo[0].angle = self.actuator_config['grabber']['motor0']['close']
         self.kit.servo[1].angle = self.actuator_config['grabber']['motor1']['close']
         self.kit.servo[2].angle = self.actuator_config['grabber']['motor2']['close']
@@ -332,6 +316,10 @@ class ActuatorService(Node):
         self.kit.servo[4].angle = self.actuator_config['grabber']['motor4']['close']
         self.kit.servo[5].angle = self.actuator_config['grabber']['motor5']['close']
         self.kit.servo[6].angle = self.actuator_config['grabber']['motor6']['close']
+        
+        # Servos Elevetor
+        self.kit.servo[self.SERVO_ID].angle = self.actuator_config['elevator']['down']
+        self.elevator_position = self.actuator_config['elevator']['down']
     
     def push_board(self):
         target_angle = self.actuator_config['grabber']['motor4']['open']        
@@ -369,8 +357,7 @@ class ActuatorService(Node):
         if msg.data:                  
             try:
                 self.get_logger().info(f"Shutdown signal received {msg}. Shutting down node... ")
-                #self.initServo()                
-                self.initStepper()  
+                #self.initServo()  
                 time.sleep(0.5)
                 GPIO.cleanup()
             except Exception as e:

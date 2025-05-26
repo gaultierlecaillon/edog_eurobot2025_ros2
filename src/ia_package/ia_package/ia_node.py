@@ -2,7 +2,6 @@
 import json
 import time
 import rclpy
-import RPi.GPIO as GPIO
 import os
 import signal
 
@@ -321,7 +320,6 @@ class IANode(Node):
             self.get_logger().warn(f"Waiting for Server {service_name} to be available...")
 
         request = CmdRotateService.Request()
-        request.mode = 'normal'
         request.angle_deg = float(param)
         request.service_requester = str(self.__class__.__name__)
 
@@ -406,33 +404,40 @@ class IANode(Node):
 
     def load_strategy(self):
         try:
-            # Attempt to open and load the strategy file
-            with open('/home/edog/ros2_ws/src/ia_package/resource/' + self.strategy_filename + '.json') as file:
+            strategy_path = os.path.join(
+                '/home/edog/ros2_ws/src/ia_package/resource',
+                f'{self.strategy_filename}.json'
+            )
+
+            with open(strategy_path, 'r') as file:
                 self.config = json.load(file)
 
+            self.shutdown_after_seconds = int(self.config.get('timer', 0))
+            self.final_score = int(self.config.get('final_score', 0))
 
-            if 'timer' in self.config:
-                self.shutdown_after_seconds = int(self.config['timer'])
-            if 'final_score' in self.config:
-                self.final_score = int(self.config['final_score'])
+            name = self.config.get('name', 'Unknown')
+            description = self.config.get('description', 'No description')
+            color = self.config.get('color', 'N/A')
+            start_pos = self.config.get('startingPos', 'N/A')
 
-            # Logging the loaded strategy information
-            self.get_logger().info(f"\033[95m[Loading Strategy] {self.config['name']} ({self.config['description']}) during {self.shutdown_after_seconds} secondes !\033[0m")
-            self.get_logger().info(f"[Start] Color: {self.config['color']} | StartPos:({self.config['startingPos']})")
+            self.get_logger().info(f"\033[95m[Loading Strategy] {name} ({description}) for {self.shutdown_after_seconds} seconds\033[0m")
+            self.get_logger().info(f"[Start] Color: {color} | StartPos: {start_pos}")
 
-            # Processing the strategy actions
-            self.actions_dict = []  
-            for strat in self.config['strategy']:
-                for action in strat['actions']:
-                    self.actions_dict.append(
-                        {
-                            'action': action,
-                            'status': 'pending'
-                        }
-                    )
+            self.actions_dict = [
+                {'action': action, 'status': 'pending'}
+                for strat in self.config.get('strategy', [])
+                for action in strat.get('actions', [])
+            ]
+
+        except FileNotFoundError:
+            self.get_logger().error(f"\033[91mStrategy file not found: {strategy_path}\033[0m")
+            raise
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f"\033[91mInvalid JSON in strategy file: {e}\033[0m")
+            raise
         except Exception as e:
-            # Log the error message in red text
-            self.get_logger().error('\033[91m' + "Error loading strategy: " + str(e) + '\033[0m')
+            self.get_logger().error(f"\033[91mUnexpected error loading strategy: {e}\033[0m")
+            raise
 
 
     def speak(self, action):
@@ -468,22 +473,14 @@ class IANode(Node):
                 self.get_logger().info(f'Failed to kill process {pid}: {e}')
     
     def disableActuators(self):
-        #servos
-        '''
         self.kit.servo[0].angle = None
         self.kit.servo[1].angle = None
         self.kit.servo[2].angle = None
         self.kit.servo[3].angle = None
         self.kit.servo[4].angle = None
         self.kit.servo[5].angle = None
-        '''
-        
-        #stepper
-        EN_pin = 24  
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(EN_pin, GPIO.OUT)
-        GPIO.output(EN_pin, GPIO.HIGH)  # Disable the driver
-        GPIO.cleanup()  # Cleanup the GPIO
+        self.kit.servo[6].angle = None
+        self.kit.servo[7].angle = None
 
     def display_score(self):
         self.get_logger().info(f"\033[38;5;208m[FINAL SCORE] (⌐■_■) {self.final_score}\n\033[0m\n")     

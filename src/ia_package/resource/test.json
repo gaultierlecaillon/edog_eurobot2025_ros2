@@ -1,16 +1,29 @@
 {
   "type": "Strategy",
-  "name": "test.json",
-  "description": "Test",
-  "color": "blue",
-  "startingPos": "0,0,0",
+  "name": "homologation.json",
+  "description": "Homologation Jaune",
+  "color": "yellow",
+  "startingPos": "-344,115,0",
   "timer": "1000",
   "strategy": [
     {
       "name": "Starting Blocks",
       "actions": [
+        { "calibrate": "True" },
         { "waiting_tirette": true },
-        { "demo_actuator": "" }
+        { "forward": "150" },
+        { "demo_actuator": "" },
+        { "waiting_tirette": false }
+      ]
+    },
+    {
+      "name": "1st build",
+      "actions": [
+        { "goto": "-430,700,0" },
+        { "forward": "130" },
+        { "grab": "" },
+        { "goto": "-300,300,180" },
+        { "build": "" }
       ]
     }
   ]

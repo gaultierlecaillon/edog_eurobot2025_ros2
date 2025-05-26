@@ -9,7 +9,7 @@
       "open": 40
     },
     "motor2": {
-      "close": 162,
+      "close": 164,
       "open": 136
     },
     "motor3": {
@@ -30,19 +30,11 @@
     }
   },
   "elevator": {      
-      "down": 30,
-      "carry": 500,
-      "suction": 3400,
-      "drop_suction": 3500,
-      "approach_etage_1": 3700,
-      "depose_etage_1": 3250
-  },
-  "stepper": {
-    "step_type": "Full",
-    "step": 20,
-    "step_delay": 0.0005,
-    "initial_delay": 0.00002,
-    "loop_delay": 0
+      "down": 10,
+      "push": 18,
+      "carry": 25,
+      "approach_etage_1": 100,
+      "depose_etage_1": 85
   },
   "demo_actuator": {
     "delay": 0.2
