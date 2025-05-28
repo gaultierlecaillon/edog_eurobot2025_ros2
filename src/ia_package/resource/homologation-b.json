@@ -1,0 +1,30 @@
+{
+  "type": "Strategy",
+  "name": "homologation.json",
+  "description": "Homologation Bleu",
+  "color": "blue",
+  "startingPos": "344,115,0",
+  "timer": "1000",
+  "strategy": [
+    {
+      "name": "Starting Blocks",
+      "actions": [
+        { "calibrate": "True" },
+        { "waiting_tirette": true },
+        { "forward": "150" },
+        { "demo_actuator": "" },
+        { "waiting_tirette": false }
+      ]
+    },
+    {
+      "name": "1st build",
+      "actions": [
+        { "goto": "420,700,0" },
+        { "forward": "150" },
+        { "grab": "" },
+        { "goto": "300,300,180" },
+        { "drop": "" }
+      ]
+    }
+  ]
+}
