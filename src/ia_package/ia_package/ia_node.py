@@ -4,6 +4,7 @@ import time
 import rclpy
 import os
 import signal
+import requests
 
 from rclpy.node import Node
 from functools import partial
@@ -143,6 +144,24 @@ class IANode(Node):
                 # Match timer
                 self.match_timer = self.create_timer(self.shutdown_after_seconds, self.shutdown_nodes)
                 self.speak("big_d.mp3")
+                
+                # Send timestamp to multiple ESP32 devices (90 seconds in the future)
+                esp32_ips = [
+                    'http://192.168.1.102',
+                    'http://192.168.1.103', 
+                    'http://192.168.1.104'
+                ]
+                timestamp = int(time.time()) + 85  # Set to run 90 seconds from now
+                
+                for esp32_ip in esp32_ips:
+                    try:
+                        self.get_logger().info(f"\033[95m[ESP32] Sending timestamp {timestamp} to {esp32_ip}/timestamp\033[0m")
+                        res = requests.post(f'{esp32_ip}/timestamp', data=str(timestamp), timeout=2)
+                        self.get_logger().info(f"\033[95m[ESP32] Response from {esp32_ip}: {res.text}\033[0m")
+                    except requests.exceptions.RequestException as e:
+                        self.get_logger().warn(f"\033[93m[ESP32] Failed to reach {esp32_ip}: {e}\033[0m")
+                    except Exception as e:
+                        self.get_logger().warn(f"\033[93m[ESP32] Unexpected error with {esp32_ip}: {e}\033[0m")
             
             self.update_current_action_status('done')
             self.destroy_subscription(self.subscriber_)  # Unsubscribe from the topic

@@ -1,9 +1,9 @@
 {
   "type": "Strategy",
-  "name": "strat_jaune.json",
-  "description": "Strat Jaune",
+  "name": "Bleu.json",
+  "description": "Strat Bleu",
   "color": "blue",
-  "startingPos": "-344,115,0",
+  "startingPos": "344,115,0",
   "timer": "100",
   "strategy": [
     {
@@ -19,26 +19,26 @@
     {
       "name": "banderole",
       "actions": [
-        { "forward": "-140" },
-        { "forward": "15" },
-        { "forward": "-15" },
+        { "forward": "-130" },
+        { "forward": "10" },
+        { "forward": "-10" },
         { "forward": "150" }
       ]
     },
     {
       "name": "1st build",
       "actions": [
-        { "goto": "-410,700,0" },
+        { "goto": "420,700,0" },
         { "forward": "150" },
         { "grab": "" },
-        { "goto": "-300,300,180" },
+        { "goto": "300,300,180" },
         { "build": "" }
       ]
     },
     {
       "name": "2nd build",
       "actions": [
-        { "goto": "-745,600,180" },
+        { "goto": "745,600,180" },
         { "forward": "230" },
         { "forward": "150" },
         { "build": "" },
@@ -48,7 +48,7 @@
     {
       "name": "Go home",
       "actions": [
-        { "goto": "-1100,1500,0" }
+        { "goto": "1100,1500,0" }
       ]
     }
   ]

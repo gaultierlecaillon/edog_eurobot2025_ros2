@@ -32,7 +32,7 @@
   "elevator": {      
       "down": 10,
       "push": 18,
-      "carry": 25,
+      "carry": 35,
       "approach_etage_1": 100,
       "depose_etage_1": 85
   },
