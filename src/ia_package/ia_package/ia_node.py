@@ -5,6 +5,7 @@ import rclpy
 import os
 import signal
 import requests
+import threading
 
 from rclpy.node import Node
 from functools import partial
@@ -81,6 +82,38 @@ class IANode(Node):
 
         self.get_logger().info("\033[38;5;208mIA Node is running!\n\n\t\t\t (⌐■_■) 𝘴𝘶𝘱 𝘣𝘳𝘢 ?\n\033[0m\n")
 
+    def send_timestamp_to_esp32_devices(self, timestamp):
+        """Non-blocking function to send timestamp to ESP32 devices"""
+        esp32_ips = [
+            'http://pami1.local',
+            'http://pami2.local'
+        ]
+        
+        def send_to_device(esp32_ip, timestamp):
+            try:
+                self.get_logger().info(f"\033[95m[ESP32] Sending timestamp {timestamp} to {esp32_ip}/timestamp\033[0m")
+                res = requests.post(f'{esp32_ip}/timestamp', data=str(timestamp), timeout=2)
+                if res.status_code == 200:
+                    self.get_logger().info(f"\033[95m[ESP32] Successfully sent timestamp to {esp32_ip}: {res.text}\033[0m")
+                else:
+                    self.get_logger().warn(f"\033[93m[ESP32] {esp32_ip} responded with status {res.status_code}: {res.text}\033[0m")
+            except requests.exceptions.ConnectionError as e:
+                self.get_logger().warn(f"\033[93m[ESP32] Device {esp32_ip} not found or unreachable: {e}. Continuing without it.\033[0m")
+            except requests.exceptions.Timeout as e:
+                self.get_logger().warn(f"\033[93m[ESP32] Timeout connecting to {esp32_ip}: {e}. Continuing without it.\033[0m")
+            except requests.exceptions.RequestException as e:
+                self.get_logger().warn(f"\033[93m[ESP32] Network error with {esp32_ip}: {e}. Continuing without it.\033[0m")
+            except Exception as e:
+                self.get_logger().warn(f"\033[93m[ESP32] Unexpected error with {esp32_ip}: {e}. Continuing without it.\033[0m")
+        
+        # Send to all devices in parallel using threads - fire and forget
+        for esp32_ip in esp32_ips:
+            thread = threading.Thread(target=send_to_device, args=(esp32_ip, timestamp))
+            thread.daemon = True  # Thread will die when main program exits
+            thread.start()
+        
+        self.get_logger().info(f"\033[95m[ESP32] Timestamp sending initiated for all devices. Robot continues immediately.\033[0m")
+
     def master_callback(self):
         self.execute_current_action()
 
@@ -145,22 +178,9 @@ class IANode(Node):
                 self.match_timer = self.create_timer(self.shutdown_after_seconds, self.shutdown_nodes)
                 self.speak("big_d.mp3")
                 
-                # Send timestamp to multiple ESP32 devices (90 seconds in the future)
-                
-                esp32_ips = [
-                    'http://pami1.local'
-                ]
+                # Send timestamp to multiple ESP32 devices (85 seconds in the future) - non-blocking
                 timestamp = int(time.time()) + 85  # Set to run 85 seconds from now
-                
-                for esp32_ip in esp32_ips:
-                    try:
-                        self.get_logger().info(f"\033[95m[ESP32] Sending timestamp {timestamp} to {esp32_ip}/timestamp\033[0m")
-                        res = requests.post(f'{esp32_ip}/timestamp', data=str(timestamp), timeout=2)
-                        self.get_logger().info(f"\033[95m[ESP32] Response from {esp32_ip}: {res.text}\033[0m")
-                    except requests.exceptions.RequestException as e:
-                        self.get_logger().warn(f"\033[93m[ESP32] Failed to reach {esp32_ip}: {e}\033[0m")
-                    except Exception as e:
-                        self.get_logger().warn(f"\033[93m[ESP32] Unexpected error with {esp32_ip}: {e}\033[0m")
+                self.send_timestamp_to_esp32_devices(timestamp)
             
             self.update_current_action_status('done')
             self.destroy_subscription(self.subscriber_)  # Unsubscribe from the topic
