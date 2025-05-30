@@ -9,21 +9,8 @@
     {
       "name": "Starting Blocks",
       "actions": [
-        { "calibrate": "True" },
         { "waiting_tirette": true },
-        { "forward": "150" },
-        { "demo_actuator": "" },
         { "waiting_tirette": false }
-      ]
-    },
-    {
-      "name": "1st build",
-      "actions": [
-        { "goto": "-430,700,0" },
-        { "forward": "130" },
-        { "grab": "" },
-        { "goto": "-300,300,180" },
-        { "build": "" }
       ]
     }
   ]

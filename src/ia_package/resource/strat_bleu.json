@@ -1,6 +1,6 @@
 {
   "type": "Strategy",
-  "name": "Bleu.json",
+  "name": "strat_bleu.json",
   "description": "Strat Bleu",
   "color": "blue",
   "startingPos": "344,115,0",
@@ -19,19 +19,19 @@
     {
       "name": "banderole",
       "actions": [
-        { "forward": "-130" },
-        { "forward": "10" },
-        { "forward": "-10" },
+        { "forward": "-140" },
+        { "forward": "15" },
+        { "forward": "-15" },
         { "forward": "150" }
       ]
     },
     {
       "name": "1st build",
       "actions": [
-        { "goto": "420,700,0" },
+        { "goto": "410,700,0" },
         { "forward": "150" },
         { "grab": "" },
-        { "goto": "300,300,180" },
+        { "goto": "300,220,180" },
         { "build": "" }
       ]
     },
@@ -44,11 +44,24 @@
         { "build": "" },
         { "forward": "-150" }
       ]
+    },    
+    {
+      "name": "3rd build",
+      "actions": [
+        { "goto": "1125,385,-90" },
+        { "forward": "170" },
+        { "forward": "20" },
+        { "grab": "" },
+        { "forward": "-150" },
+        { "goto": "300,620,180" },
+        { "forward": "150" },
+        { "build": "" }
+      ]
     },
     {
       "name": "Go home",
       "actions": [
-        { "goto": "1100,1500,0" }
+        { "goto": "1100,1600,0" }
       ]
     }
   ]

@@ -123,6 +123,12 @@ void setup() {
   digitalWrite(ledPin, HIGH); // LED ON
 
   timeClient.begin();
+  Serial.println("Syncing time with NTP...");
+  while (!timeClient.update()) {
+    timeClient.forceUpdate();
+    delay(500);
+  }
+  Serial.println("Time synced: " + String(timeClient.getEpochTime()));
 
   server.on("/timestamp", HTTP_POST, []() {
     if (server.hasArg("plain")) {
@@ -142,7 +148,10 @@ void setup() {
 
 void loop() {
   server.handleClient();
-  timeClient.update();
+
+  if (!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
 
   unsigned long currentTime = timeClient.getEpochTime();
 

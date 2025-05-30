@@ -146,12 +146,11 @@ class IANode(Node):
                 self.speak("big_d.mp3")
                 
                 # Send timestamp to multiple ESP32 devices (90 seconds in the future)
+                
                 esp32_ips = [
-                    'http://192.168.1.102',
-                    'http://192.168.1.103', 
-                    'http://192.168.1.104'
+                    'http://pami1.local'
                 ]
-                timestamp = int(time.time()) + 85  # Set to run 90 seconds from now
+                timestamp = int(time.time()) + 85  # Set to run 85 seconds from now
                 
                 for esp32_ip in esp32_ips:
                     try:

@@ -158,9 +158,9 @@ class LidarFilter(Node):
                 
                 #self.get_logger().info(f"👮👮👮 Obstacle ! self.x_:={self.x_}m, self.y_:={self.y_}m, angle:={angle}, real_angle:={self.r_ - angle}, dist_x:={round(dist_x,2)}m, dist_y={round(dist_y,2)}m; Ostacle Position ({round(x_obstacle)}, {round(y_obstacle)})")
                 if (self.min_distance < dist_y < self.emergency_distance and
-                        -0.4 < dist_x < 0.4 and
-                        -1400 < x_obstacle < 1400 and
-                        100 < y_obstacle < 1900):
+                        -0.35 < dist_x < 0.35 and
+                        -1300 < x_obstacle < 1300 and
+                        200 < y_obstacle < 1800):
                     
                     self.print_robot_infos()
                     self.get_logger().info(

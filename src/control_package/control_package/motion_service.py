@@ -15,7 +15,6 @@ from robot_interfaces.srv import PositionBool
 from robot_interfaces.srv import CmdRotateService
 from robot_interfaces.msg import MotionCompleteResponse
 from robot_interfaces.srv import CmdActuatorService
-from std_msgs.msg import Bool
 from example_interfaces.msg import String
 
 # odrive

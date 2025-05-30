@@ -18,11 +18,11 @@
     },
     "motor4": {
       "close": 0,
-      "open": 90
+      "open": 80
     },
     "motor5": {
       "close": 0,
-      "open": 90
+      "open": 80
     },
     "motor6": {
       "close": 40,
@@ -33,7 +33,7 @@
       "down": 10,
       "push": 18,
       "carry": 35,
-      "approach_etage_1": 100,
+      "approach_etage_1": 105,
       "depose_etage_1": 85
   },
   "demo_actuator": {
