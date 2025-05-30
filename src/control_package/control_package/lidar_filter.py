@@ -78,25 +78,17 @@ class LidarFilter(Node):
 
     def scan_callback(self, msg):
         """Process incoming LiDAR scan data"""
-        ranges_list = msg.ranges
-
-        # Filter ranges based on min/max distances
+        # Filter scan ranges based on min/max thresholds
         filtered_ranges = [
-            max(min(r, self.max_distance), self.min_distance) 
-            for r in ranges_list
+            r if self.min_distance <= r <= self.max_distance else float('inf')
+            for r in msg.ranges
         ]
 
-        # Group and average by angle
-        angle_dict = self.process_ranges_by_angle(filtered_ranges)
-        
-        # Create angle-based ranges list
-        angle_ranges = self.create_angle_ranges(angle_dict, len(ranges_list))
-        
-        # Check for obstacles requiring emergency stop
-        self.check_emergency_stop(angle_ranges)
-        
-        # Publish filtered scan
-        #self.publish_filtered_scan(msg, angle_ranges)
+        # Use the filtered ranges to check for emergency stop
+        self.check_emergency_stop(msg, filtered_ranges)
+
+        # Optional: publish filtered scan for visualization/debug
+        self.publish_filtered_scan(msg, filtered_ranges)
 
     def process_ranges_by_angle(self, filtered_ranges):
         """Group and average range readings by angle"""
@@ -121,61 +113,54 @@ class LidarFilter(Node):
                 
         return angle_dict
 
-    def create_angle_ranges(self, angle_dict, length):
-        """Create range list with average distances from angle dictionary"""
-        angle_ranges = [0] * length
-        
-        for index in range(length):
-            index_offset = (index + 900) % 1800
-            angle = int(360 - index_offset / 5)
+        def create_angle_ranges(self, angle_dict, length):
+            """Create range list with average distances from angle dictionary"""
+            angle_ranges = [0] * length
             
-            if angle in angle_dict:
-                angle_ranges[index] = angle_dict[angle]['average_distance']
+            for index in range(length):
+                index_offset = (index + 900) % 1800
+                angle = int(360 - index_offset / 5)
                 
-        return angle_ranges
+                if angle in angle_dict:
+                    angle_ranges[index] = angle_dict[angle]['average_distance']
+                    
+            return angle_ranges
 
-    def check_emergency_stop(self, angle_ranges):
+    def check_emergency_stop(self, msg, filtered_ranges):
         """Check if emergency stop is required based on detected obstacles"""
         emergency_stop_msg = Bool()
         emergency_stop_msg.data = False
-        
-        for index, distance in enumerate(angle_ranges):            
-            if self.max_distance > distance > self.min_distance:
-                index_offset = (index + 900) % 1800
-                angle = int(2*360 - index_offset / 5)
-                if angle > 180:
-                    angle = -(360 - angle)
 
-                # Convert polar coordinates to Cartesian coordinates
-                angle_rad = np.radians(angle)
-                dist_x = distance * np.sin(angle_rad)  # in m
-                dist_y = distance * np.cos(angle_rad)  # in m
-                
-                x_obstacle, y_obstacle = self.calculate_obstacle_position(distance, angle)
-                
-                # Check if obstacle is in emergency zone
-                # Assuming x_obstacle and y_obstacle are in mm
-                
-                #self.get_logger().info(f"👮👮👮 Obstacle ! self.x_:={self.x_}m, self.y_:={self.y_}m, angle:={angle}, real_angle:={self.r_ - angle}, dist_x:={round(dist_x,2)}m, dist_y={round(dist_y,2)}m; Ostacle Position ({round(x_obstacle)}, {round(y_obstacle)})")
-                if (self.min_distance < dist_y < self.emergency_distance and
-                        -0.35 < dist_x < 0.35 and
-                        -1300 < x_obstacle < 1300 and
-                        200 < y_obstacle < 1800):
-                    
+        angle = msg.angle_min
+        angle_increment = msg.angle_increment
+
+        for i, distance in enumerate(filtered_ranges):
+            if not math.isinf(distance):
+                angle_rad = angle + i * angle_increment
+                dist_x = distance * math.sin(angle_rad)
+                dist_y = distance * math.cos(angle_rad)
+
+                x_obstacle, y_obstacle = self.calculate_obstacle_position(distance, math.degrees(angle_rad))
+
+                if (
+                    self.min_distance < dist_y < self.emergency_distance and
+                    -0.4 < dist_x < 0.4 and
+                    -1400 < x_obstacle < 1400 and
+                    100 < y_obstacle < 1900
+                ):
                     self.print_robot_infos()
                     self.get_logger().info(
                         f"👮 Obstacle! dist_x={round(dist_x,2)}m, "
                         f"dist_y={round(dist_y,2)}m; "
                         f"Obstacle Position ({round(x_obstacle)}, {round(y_obstacle)})"
                     )
-                
                     emergency_stop_msg.data = True
                     self.emergency_stop_publisher.publish(emergency_stop_msg)
-                    return  # Exit after first emergency detection to avoid flooding
-        
-        # No emergency detected
+                    return
+
         self.emergency_stop_publisher.publish(emergency_stop_msg)
-    
+
+
     def print_robot_infos(self):
         """Print current robot position and orientation"""
         self.get_logger().info(

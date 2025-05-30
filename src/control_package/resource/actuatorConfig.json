@@ -18,11 +18,11 @@
     },
     "motor4": {
       "close": 0,
-      "open": 80
+      "open": 70
     },
     "motor5": {
       "close": 0,
-      "open": 80
+      "open": 70
     },
     "motor6": {
       "close": 40,

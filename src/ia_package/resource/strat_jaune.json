@@ -38,13 +38,13 @@
     {
       "name": "2nd build",
       "actions": [
-        { "goto": "-745,600,180" },
+        { "goto": "-740,600,180" },
         { "forward": "230" },
         { "forward": "150" },
         { "build": "" },
         { "forward": "-150" }
       ]
-    },
+    },    
     {
       "name": "3rd build",
       "actions": [
